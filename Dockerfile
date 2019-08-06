@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   lsb-release \
   make \
   mysql-client \
+  nano \
   postgresql-client \
   python-dev \
   python-pip \
@@ -84,3 +85,8 @@ RUN git clone https://github.com/tpope/vim-sensible.git $HOME/.vim/bundle/vim-se
     git clone https://github.com/kien/ctrlp.vim.git $HOME/.vim/bundle/ctrlp.vim && \
 # vim-go
     git clone https://github.com/fatih/vim-go.git ~/.vim/bundle/vim-go
+
+# mongo client
+RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.0.asc | apt-key add -
+RUN echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+RUN apt-get update && apt-get install -y mongodb-org-tools mongodb-org-shell
