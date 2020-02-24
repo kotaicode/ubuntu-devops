@@ -70,6 +70,10 @@ RUN mv ~/rabbitmqadmin /usr/bin/
 #install rabtap
 RUN GO111MODULE=on go get github.com/jandelgado/rabtap/cmd/rabtap
 
+# install terraform
+RUN wget https://releases.hashicorp.com/terraform/0.12.19/terraform_0.12.19_linux_amd64.zip
+RUN unzip terraform_0.12.19_linux_amd64.zip
+RUN mv terraform /usr/bin/
 
 # Vim plugins
 # pathogen
@@ -91,3 +95,11 @@ RUN git clone https://github.com/tpope/vim-sensible.git $HOME/.vim/bundle/vim-se
 RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.0.asc | apt-key add -
 RUN echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.0.list
 RUN apt-get update && apt-get install -y mongodb-org-tools mongodb-org-shell
+
+# nodejs & yarn
+RUN curl -sL https://deb.nodesource.com/setup_12.x  | bash -
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update && apt-get -y install nodejs yarn \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
