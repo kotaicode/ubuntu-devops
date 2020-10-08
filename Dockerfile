@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   dnsutils \
   git \
   gnupg \
+  jq \
   libffi-dev \
   libssl-dev \
   lsb-release \
@@ -32,6 +33,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 #magic wormhole to send/receive secrets
 RUN pip install magic-wormhole
+
+# yamllint
+RUN pip install yamllint
+
+# yq (the yaml equivalent of jq, needs jq)
+RUN pip install yq
 
 # AWS CLI
 RUN pip install aws-shell
@@ -103,3 +110,7 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources
 RUN apt-get update && apt-get -y install nodejs yarn \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+
+# jsonlint
+RUN npm install jsonlint -g
+
