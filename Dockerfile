@@ -114,3 +114,12 @@ RUN apt-get update && apt-get -y install nodejs yarn \
 # jsonlint
 RUN npm install jsonlint -g
 
+
+#mssql-cli
+
+RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl -o /etc/apt/sources.list.d/microsoft.list https://packages.microsoft.com/config/ubuntu/18.04/prod.list
+
+RUN apt-get update && apt-get -y install mssql-cli \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
