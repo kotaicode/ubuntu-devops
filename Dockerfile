@@ -1,4 +1,5 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
   apache2-utils \
   apt-transport-https \
@@ -16,8 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   mysql-client \
   nano \
   postgresql-client \
-  python-dev \
-  python-pip \
+  python-all-dev \
+  python3-pip \
   python-setuptools \
   python3.6 \
   redis-tools \
@@ -37,22 +38,14 @@ RUN pip install magic-wormhole
 # yamllint
 RUN pip install yamllint
 
-# yq (the yaml equivalent of jq, needs jq)
-RUN pip install yq
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64 -O /usr/bin/yq &&\
+    chmod +x /usr/bin/yq
 
 # AWS CLI
-RUN pip install aws-shell
-RUN pip install awscli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
 
 # Azure CLI
-RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
-    gpg --dearmor | \
-    tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
-RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | \
-    tee /etc/apt/sources.list.d/azure-cli.list
-RUN apt-get update && apt-get install -y azure-cli \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # GCloud SDK
 ENV GCLOUD_SDK_VERSION="256.0.0"
@@ -64,9 +57,8 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
     rm google-cloud-sdk-${GCLOUD_SDK_VERSION}-linux-x86_64.tar.gz
 
 # install go
-RUN wget https://dl.google.com/go/go1.12.6.linux-amd64.tar.gz
-RUN tar -xvf go1.12.6.linux-amd64.tar.gz
-RUN mv go /usr/local
+RUN wget https://golang.org/dl/go1.17.3.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go1.17.3.linux-amd64.tar.gz
 ENV GOROOT=/usr/local/go
 ENV PATH=$PATH:/usr/local/go/bin
 
@@ -99,12 +91,12 @@ RUN git clone https://github.com/tpope/vim-sensible.git $HOME/.vim/bundle/vim-se
     git clone https://github.com/fatih/vim-go.git ~/.vim/bundle/vim-go
 
 # mongo client
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.0.asc | apt-key add -
-RUN echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.0.list
-RUN apt-get update && apt-get install -y mongodb-org-tools mongodb-org-shell
+#RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
+#RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+#RUN apt-get update && apt-get install -y mongodb-mongosh
 
 # nodejs & yarn
-RUN curl -sL https://deb.nodesource.com/setup_12.x  | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x  | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get -y install nodejs yarn \
@@ -117,9 +109,9 @@ RUN npm install jsonlint -g
 
 #mssql-cli
 
-RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl -o /etc/apt/sources.list.d/microsoft.list https://packages.microsoft.com/config/ubuntu/18.04/prod.list
-
-RUN apt-get update && apt-get -y install mssql-cli \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+#RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+#    && curl -o /etc/apt/sources.list.d/microsoft.list https://packages.microsoft.com/config/ubuntu/20.04/prod.list
+#
+#RUN apt-get update && apt-get -y install mssql-tools \
+#  && apt-get clean \
+#  && rm -rf /var/lib/apt/lists/*
