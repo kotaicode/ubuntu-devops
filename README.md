@@ -8,6 +8,7 @@ comes with:
   - AWS CLI
   - Google Cloud platform SDK
   - MS Azure CLI
+  - kubectl
 
 **programming:**
 
