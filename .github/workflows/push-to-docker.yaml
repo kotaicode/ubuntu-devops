@@ -2,7 +2,7 @@ name: Push to Docker Hub
 on:
   push:
     branches:
-      - latest
+      - dev
 
 jobs:
   build:
@@ -27,4 +27,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ubuntu-devops:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/ubuntu-devops:${{ github.ref }}
