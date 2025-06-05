@@ -1,6 +1,6 @@
 #!/bin/bash
 
-versions="${KUBECTL_VERSIONS:-1.24.0 1.25.0 1.26.0 1.27.0 1.28.0 1.29.0}"
+versions="${KUBECTL_VERSIONS:-1.27.0 1.28.0 1.29.0 1.30.0 1.31.0 1.32.0}"
 KUBECTL_INSTALL_DIR="${KUBECTL_INSTALL_DIR:-/usr/local/bin}"
 
 

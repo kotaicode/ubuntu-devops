@@ -47,16 +47,12 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # GCloud SDK
-ENV GCLOUD_SDK_VERSION="458.0.1"
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
-    tar -xzvf google-cloud-sdk-${GCLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
-    /google-cloud-sdk/install.sh -q && \
-    ln -s /google-cloud-sdk/bin/* /usr/local/bin && \
-    gcloud --version && \
-    rm google-cloud-sdk-${GCLOUD_SDK_VERSION}-linux-x86_64.tar.gz
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+apt-get update && apt-get install  -y --no-install-recommends google-cloud-cli
 
 # install go
-ENV GO_VERSION="1.21.5"
+ENV GO_VERSION="1.24.1"
 RUN wget https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
 RUN tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
 ENV GOROOT=/usr/local/go
