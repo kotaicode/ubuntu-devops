@@ -1,0 +1,48 @@
+version: '3'
+
+vars:
+  IMAGE_NAME: ghcr.io/kotaicode/ubuntu-devops
+  LATEST_TAG: latest
+  VERSION: '{{.CLI_VERSION | default "dev"}}'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  build:
+    desc: Build the Docker image locally
+    cmds:
+      - docker build -t {{.IMAGE_NAME}}:{{.LATEST_TAG}} .
+      - docker tag {{.IMAGE_NAME}}:{{.LATEST_TAG}} {{.IMAGE_NAME}}:{{.VERSION}}
+
+  run:
+    desc: Run the container locally
+    cmds:
+      - docker run --rm -it {{.IMAGE_NAME}}:{{.LATEST_TAG}} bash
+
+  k8s-shell:
+    desc: Run an interactive shell in a Kubernetes cluster
+    cmds:
+      - kubectl run ubuntu-devops-shell --rm -i --tty --image {{.IMAGE_NAME}}:{{.LATEST_TAG}} -- bash
+
+  release:
+    desc: Create a new release by building and pushing the image
+    cmds:
+      - |
+        if [ -z "{{.VERSION}}" ] || [ "{{.VERSION}}" = "dev" ]; then
+          echo "Error: VERSION is required for release"
+          exit 1
+        fi
+      - task: build
+      - docker push {{.IMAGE_NAME}}:{{.LATEST_TAG}}
+      - docker push {{.IMAGE_NAME}}:{{.VERSION}}
+      - git tag v{{.VERSION}}
+      - git push origin v{{.VERSION}}
+
+  clean:
+    desc: Remove local Docker images
+    cmds:
+      - docker rmi {{.IMAGE_NAME}}:{{.LATEST_TAG}} || true
+      - docker rmi {{.IMAGE_NAME}}:{{.VERSION}} || true 
