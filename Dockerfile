@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   python3-all-dev \
   python3-pip \
   python3-setuptools \
+  python3-venv \
   python3.6 \
   redis-tools \
   ruby-full \
@@ -44,7 +45,10 @@ RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_lin
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
 
 # Azure CLI
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+RUN python3 -m venv /opt/azure-cli && \
+    . /opt/azure-cli/bin/activate && \
+    pip install --no-cache-dir azure-cli && \
+    ln -s /opt/azure-cli/bin/az /usr/local/bin/az
 
 # GCloud SDK
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
