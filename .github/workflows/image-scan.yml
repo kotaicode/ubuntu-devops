@@ -1,0 +1,78 @@
+# Runs after a Docker image is built and pushed. Uses workflow_run so the image
+# exists in the registry. Scans the image tagged with the branch or tag that
+# triggered the build (e.g. main or v1.0.0).
+name: Container image scan
+
+on:
+  workflow_run:
+    workflows: [ "Build and Publish Docker Image" ]
+    types: [ completed ]
+
+jobs:
+  scan:
+    # Only run when the build workflow actually pushed an image (success)
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: Set image ref
+        id: ref
+        run: |
+          REF="${{ github.event.workflow_run.head_branch }}"
+          if [ -z "$REF" ]; then
+            REF="main"
+          fi
+          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/${{ github.repository }}/${REF}" >> "$GITHUB_OUTPUT"
+
+      - name: Run Trivy vulnerability scanner (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.ref.outputs.image }}
+          format: sarif
+          output: trivy-results.sarif
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Upload Trivy SARIF
+        if: hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Run Trivy vulnerability scanner (table)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.ref.outputs.image }}
+          format: table
+          exit-code: 0
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Run Grype vulnerability scanner
+        uses: anchore/scan-action@v3
+        with:
+          image: ${{ steps.ref.outputs.image }}
+          fail-build: false
+          severity-cutoff: high
+          output-format: table
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.15.0
+        with:
+          image: ${{ steps.ref.outputs.image }}
+          format: json
+          output-file: sbom.json
+          upload-artifact: false
+
+      - name: Upload SBOM artifact
+        if: hashFiles('sbom.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ steps.ref.outputs.ref }}-${{ github.event.workflow_run.head_sha }}
+          path: sbom.json
