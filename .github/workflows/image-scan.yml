@@ -40,21 +40,26 @@ jobs:
 
       - name: Run Trivy vulnerability scanner (SARIF)
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_SCANNERS: vuln
         with:
           image-ref: ${{ steps.ref.outputs.image }}
           format: sarif
           output: trivy-results.sarif
           ignore-unfixed: true
           vuln-type: os,library
+          scanners: vuln
 
       - name: Upload Trivy SARIF
         if: hashFiles('trivy-results.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-results.sarif
 
       - name: Run Trivy vulnerability scanner (table)
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_SCANNERS: vuln
         with:
           image-ref: ${{ steps.ref.outputs.image }}
           format: table
@@ -62,6 +67,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL,HIGH,MEDIUM
+          scanners: vuln
 
       - name: Run Grype vulnerability scanner
         uses: anchore/scan-action@v3
