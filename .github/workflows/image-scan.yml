@@ -32,14 +32,9 @@ jobs:
         run: |
           HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
           SHORT_SHA="${HEAD_SHA::7}"
-          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
 
-          # Prefer the branch or tag name used by the build workflow; fall back to a SHA-based tag.
-          if [ -n "${HEAD_BRANCH}" ]; then
-            REF="${HEAD_BRANCH}"
-          else
-            REF="sha-${SHORT_SHA}"
-          fi
+          # Use an immutable tag derived from the workflow_run head SHA (matches docker/metadata-action type=sha,format=short).
+          REF="sha-${SHORT_SHA}"
           echo "ref=${REF}" >> "$GITHUB_OUTPUT"
           echo "image=ghcr.io/${{ github.repository }}:${REF}" >> "$GITHUB_OUTPUT"
 
