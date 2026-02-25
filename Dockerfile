@@ -56,7 +56,7 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 apt-get update && apt-get install  -y --no-install-recommends google-cloud-cli
 
 # install go
-ENV GO_VERSION="1.24.1"
+ENV GO_VERSION="1.24.13"
 RUN wget https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
 RUN tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
 ENV GOROOT=/usr/local/go
