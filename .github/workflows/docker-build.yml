@@ -61,4 +61,4 @@ jobs:
         with:
           files: |
             ${{ steps.meta.outputs.tags }}
-          generate_release_notes: true 
+          generate_release_notes: true
