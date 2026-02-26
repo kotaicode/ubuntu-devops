@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
   apache2-utils \
   apt-transport-https \
   build-essential \
@@ -53,7 +53,7 @@ RUN python3 -m venv /opt/azure-cli && \
 # GCloud SDK
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
 echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
-apt-get update && apt-get install  -y --no-install-recommends google-cloud-cli
+apt-get update && apt-get upgrade -y && apt-get install  -y --no-install-recommends google-cloud-cli
 
 # install go
 ENV GO_VERSION="1.24.13"
@@ -106,7 +106,7 @@ RUN git clone https://github.com/tpope/vim-sensible.git $HOME/.vim/bundle/vim-se
 RUN curl -sL https://deb.nodesource.com/setup_20.x  | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get -y install nodejs yarn \
+RUN apt-get update && apt-get upgrade -y && apt-get -y install nodejs yarn \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
