@@ -5,7 +5,7 @@ KUBECTL_INSTALL_DIR="${KUBECTL_INSTALL_DIR:-/usr/local/bin}"
 
 
 mkdir -p $KUBECTL_INSTALL_DIR
-for version in ${versions[@]}; do
+for version in $versions; do
   KUBECTL_FILE=$KUBECTL_INSTALL_DIR/kubectl-v$version
   echo "Installing kubectl v$version to $KUBECTL_FILE"
   curl -L https://dl.k8s.io/release/v${version}/bin/linux/amd64/kubectl -o $KUBECTL_FILE

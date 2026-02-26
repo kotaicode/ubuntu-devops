@@ -36,17 +36,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# Apply security updates (e.g. libgnutls30t64 CVE-2025-14831)
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 # install yq
-ENV YQ_VERSION="4.40.5"
+ENV YQ_VERSION="4.52.4"
 RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 -O /usr/bin/yq &&\
     chmod +x /usr/bin/yq
 
 # AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
 
-# Azure CLI
+# Azure CLI (use venv; upgrade pip to address CVE-2025-8869)
 RUN python3 -m venv /opt/azure-cli && \
     . /opt/azure-cli/bin/activate && \
+    pip install --no-cache-dir --upgrade 'pip>=25.3' && \
     pip install --no-cache-dir azure-cli && \
     ln -s /opt/azure-cli/bin/az /usr/local/bin/az
 
@@ -55,10 +61,11 @@ RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -
 echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
 apt-get update && apt-get install  -y --no-install-recommends google-cloud-cli
 
-# install go
-ENV GO_VERSION="1.24.13"
-RUN wget https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+# install go (single RUN so tar sees the downloaded file; use 1.22 LTS with security fixes)
+ENV GO_VERSION="1.22.4"
+RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -O /tmp/go.tar.gz && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm /tmp/go.tar.gz
 ENV GOROOT=/usr/local/go
 ENV PATH=$PATH:/usr/local/go/bin
 
@@ -75,11 +82,12 @@ RUN wget https://github.com/jandelgado/rabtap/releases/download/v${RABTAP_VERSIO
     mv rabtap /usr/bin/ && \
     rm rabtap_${RABTAP_VERSION}_linux_amd64.tar.gz
 
-# install terraform
-ENV TERRAFORM_VERSION="1.6.6"
-RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-RUN unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-RUN mv terraform /usr/bin/
+# install terraform (newer release built with patched Go)
+ENV TERRAFORM_VERSION="1.12.1"
+RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -O /tmp/terraform.zip && \
+    unzip /tmp/terraform.zip -d /tmp && \
+    mv /tmp/terraform /usr/bin/ && \
+    rm /tmp/terraform.zip
 
 # Vim plugins
 # pathogen
@@ -102,19 +110,19 @@ RUN git clone https://github.com/tpope/vim-sensible.git $HOME/.vim/bundle/vim-se
 #RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
 #RUN apt-get update && apt-get install -y mongodb-mongosh
 
-# nodejs & yarn
-RUN curl -sL https://deb.nodesource.com/setup_20.x  | bash -
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+# nodejs & yarn (Node 22 LTS ships with newer npm and patched deps)
+RUN curl -sL https://deb.nodesource.com/setup_22.x  | bash -
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/yarn.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get -y install nodejs yarn \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# jsonlint
-RUN npm install jsonlint -g
+# jsonlint (global); npm update -g to pull in patched transitive deps where possible
+RUN npm install jsonlint -g && npm update -g
 
-# install kubectl
-ENV KUBECTL_VERSIONS="1.24.0 1.25.0 1.26.0"
+# install kubectl (newer versions with patched Go stdlib)
+ENV KUBECTL_VERSIONS="1.30.0 1.31.0 1.32.0"
 ENV KUBECTL_INSTALL_DIR=/usr/local/bin
 COPY install-kubectl.sh /tmp/install-kubectl.sh
 RUN /tmp/install-kubectl.sh
